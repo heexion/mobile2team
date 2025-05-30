@@ -48,6 +48,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.androidx.navigation.compose)
@@ -66,8 +68,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
     implementation("androidx.compose.material:material-icons-extended:1.6.0")
     implementation("androidx.compose.material3:material3:1.2.1")
-
-
 
 
 }
