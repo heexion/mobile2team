@@ -2,18 +2,41 @@ package com.example.mobile2team.Screen
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,16 +44,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Composable
 
 
 /**
@@ -40,12 +62,14 @@ import androidx.compose.runtime.Composable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
+    navController: NavController,
     facilityId: Long,
     viewModel: DetailScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     var showInfoPanel by remember { mutableStateOf(false) }
+
 
     //초기 데이터 로드 / 初始加载数据
     LaunchedEffect(facilityId) {
@@ -64,7 +88,8 @@ fun DetailScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* 뒤로가기 */ }) {
+                    IconButton(onClick = {
+                        navController.popBackStack()/* 뒤로가기 */ }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로 가기")
                     }
                 }
@@ -119,15 +144,25 @@ fun DetailScreen(
  */
 @Composable
 private fun SearchBarPlaceholder() {
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     OutlinedTextField(
-        value = "",
-        onValueChange = { },
-        modifier = Modifier.fillMaxWidth(),
+        value = searchQuery,
+        onValueChange = { searchQuery = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
         placeholder = { Text("검색") },
         leadingIcon = {
-            Icon(Icons.Default.Search, contentDescription = "검색")
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "검색 아이콘"
+            )
         },
-        enabled = false
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFF005500),
+            unfocusedBorderColor = Color(0xFF007F00),
+            cursorColor = Color(0xFF005500)
+        )
     )
 }
 

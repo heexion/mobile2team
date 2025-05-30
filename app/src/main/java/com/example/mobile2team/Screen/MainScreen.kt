@@ -65,7 +65,9 @@ fun MainScreen(
         ) {
             // 주변 복지시설 찾기
             OutlinedButton(
-                onClick = { navController.navigate("search") },
+                onClick = { navController.navigate("detail/123") // 시설 id가 123인 곳으로 이동
+                    //navController.navigate("detail/${facility.id}") (나중에 이거로 바꿔야함)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
