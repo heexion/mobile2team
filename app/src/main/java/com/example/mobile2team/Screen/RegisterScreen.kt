@@ -1,9 +1,7 @@
 package com.example.mobile2team.Screen
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,15 +32,22 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.mobile2team.ViewModel.UserViewModel
 
+
 @Composable
-fun LoginScreen(
+fun RegisterScreen(
     navController: NavController,
     userViewModel: UserViewModel,
+    onRegisterClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    var name by remember { mutableStateOf("") }
     var id by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
+
+
+
 
     Column(
         modifier = modifier
@@ -52,13 +57,25 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "WellFit 로그인",
+            text = "WellFit 회원가입",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
+        Text("이름", fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.Start).padding(bottom = 4.dp))
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("이름") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text("아이디", fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.Start).padding(bottom = 4.dp))
         OutlinedTextField(
             value = id,
             onValueChange = { id = it },
@@ -67,70 +84,73 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
+        Text("비밀번호", fontWeight = FontWeight.SemiBold, modifier = Modifier.align(Alignment.Start).padding(bottom = 4.dp))
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("비밀번호") },
+            placeholder = { Text("비밀번호") },
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(12.dp))
+
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            placeholder = { Text("비밀번호 확인") },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (errorMessage.isNotEmpty()) {
+            Text(
+                text = errorMessage,
+                color = Color.Red,
+                modifier = Modifier.align(Alignment.Start).padding(bottom = 8.dp)
+            )
+        }
 
         Button(
             onClick = {
-                when {
-                    id.isBlank() || password.isBlank() -> {
-                        errorMessage = "아이디와 비밀번호를 모두 입력해주세요."
+                errorMessage = when {
+                    name.isBlank() || id.isBlank() || password.isBlank() || confirmPassword.isBlank() -> {
+                        "모든 항목을 입력해주세요."
                     }
-                    userViewModel.checkLogin(id, password) -> {
-                        errorMessage = ""
-                        navController.navigate("main") {
-                            popUpTo("login") { inclusive = true }
-                        }
+                    password != confirmPassword -> {
+                        "비밀번호가 일치하지 않습니다."
                     }
                     else -> {
-                        errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다."
+                        userViewModel.setUserInfo(name, id, password)
+                        navController.navigate("login")
+                        ""
                     }
                 }
             },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF005500)),
-            shape = RoundedCornerShape(4.dp)
+            shape = RoundedCornerShape(4.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF005500))
         ) {
-            Text("로그인")
-        }
-
-        if (errorMessage.isNotEmpty()) {
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = errorMessage, color = Color.Red)
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row {
-            Text("WellFit 회원이 아니라면? ")
-            Text(
-                text = "회원가입",
-                color = Color(0xFF007F00),
-                modifier = Modifier.clickable {
-                    navController.navigate("register")
-                }
-            )
+            Text("회원가입")
         }
     }
 }
 
 @Preview
 @Composable
-private fun LoginScreenPreview() {
+private fun RegisterScreenPreview() {
     val navController = rememberNavController()
-    val userViewModel = viewModel<UserViewModel>()
-    LoginScreen(navController = navController, userViewModel = userViewModel)
+    val userViewModel = viewModel<UserViewModel>()  // 💡 추가
+    RegisterScreen(navController = navController, userViewModel = userViewModel)
+
 }
