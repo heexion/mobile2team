@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -184,21 +185,7 @@ private fun MapPlaceholder(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = "지도",
-                    modifier = Modifier.size(48.dp),
-                    tint = Color.Gray
-                )
-                Text(
-                    text = "지도 화면",
-                    color = Color.Gray,
-                    fontSize = 16.sp
-                )
-            }
+            MapScreen()
         }
     }
 }
@@ -362,5 +349,4 @@ private fun makePhoneCall(context: Context, phoneNumber: String) {
 //        isFavorite = isFavorite
 //    )
 //}
-
 
