@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.mobile2team">
+
+    <!-- Naver Maps Client ID -permission-->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -12,6 +18,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Mobile2team"
         tools:targetApi="31">
+
+        <!-- Naver Maps Client ID - meta- data-->
+        <meta-data
+            android:name="com.naver.maps.map.NCP_KEY_ID"
+            android:value="kb4umqhxp3"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

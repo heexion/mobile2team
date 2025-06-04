@@ -1,7 +1,10 @@
+import org.gradle.kotlin.dsl.implementation
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.secrets.gradle.plugin)
 }
 
 android {
@@ -39,8 +42,15 @@ android {
     }
 }
 
+secrets{
+    propertiesFileName = "secrets.properties"
+    defaultPropertiesFileName = "local.defaults.properties"
+}
+
 dependencies {
 
+    implementation ("com.naver.maps:map-sdk:3.21.0")
+    implementation(libs.naver.map.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(platform(libs.androidx.compose.bom))
@@ -54,6 +64,8 @@ dependencies {
     implementation(libs.converter.gson)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.material3)
+    implementation(libs.androidx.navigation.common)
+    implementation(libs.naver.map.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
