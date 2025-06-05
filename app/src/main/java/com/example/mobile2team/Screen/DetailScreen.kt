@@ -64,7 +64,7 @@ import com.example.mobile2team.ViewModel.DetailScreenViewModel
 @Composable
 fun DetailScreen(
     navController: NavController,
-    facilityId: Long,
+    facilityId: String,
     viewModel: DetailScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -227,11 +227,14 @@ private fun FacilityInfoPanel(
                     )
 
                     // 운영시간 직접 표시 / 直接显示营业时间
+                    /*
                     Text(
                         text = facility.operatingHours ?: "운영시간 정보 없음",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
+
+                     */
 
                     // 전화번호 직접 표시 / 直接显示电话号码
                     Text(
