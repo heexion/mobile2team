@@ -30,8 +30,7 @@ import com.example.mobile2team.ViewModel.DetailScreenViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Composable
-
+import androidx.navigation.NavController
 
 /**
  * 복지시설 상세 정보 화면 - 시설 상세 정보 표시, 즐겨찾기 기능, 전화 걸기 기능
@@ -41,6 +40,7 @@ import androidx.compose.runtime.Composable
 @Composable
 fun DetailScreen(
     facilityId: Long,
+    navController: NavController,
     viewModel: DetailScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -311,21 +311,3 @@ private fun makePhoneCall(context: Context, phoneNumber: String) {
         e.printStackTrace()
     }
 }
-
-/**
- * Mock 데이터 생성 함수 / 创建模拟数据函数
- */
-//private fun createMockFacility(id: Long, isFavorite: Boolean): FacilityDetail {
-//    return FacilityDetail(
-//        id = id,
-//        name = "강남구청 복지관",
-//        address = "서울특별시 강남구 학동로 426",
-//        phoneNumber = "02-3423-5000",
-//        operatingHours = "평일 09:00-18:00",
-//        averageRating = 4.2f,
-//        reviewCount = 23,
-//        isFavorite = isFavorite
-//    )
-//}
-
-
