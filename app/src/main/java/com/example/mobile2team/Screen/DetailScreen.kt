@@ -115,7 +115,6 @@ fun DetailScreen(
 
                 // 지도 영역 (클릭 가능) / 地图区域 (可点击)
                 MapPlaceholder(
-                    onMapClick = { showInfoPanel = !showInfoPanel },
                     modifier = Modifier.weight(1f) // 남은 공간 모두 차지
                 )
             }
@@ -139,6 +138,9 @@ fun DetailScreen(
         }
     }
 }
+
+
+
 
 /**
  * 검색 바 플레이스홀더 / 搜索栏占位符
@@ -172,13 +174,12 @@ private fun SearchBarPlaceholder() {
  */
 @Composable
 private fun MapPlaceholder(
-    onMapClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onMapClick() }, // 클릭 이벤트 추가
+            .clickable { }, // 클릭 이벤트 제거
         colors = CardDefaults.cardColors(containerColor = Color.LightGray)
     ) {
         Box(
@@ -194,13 +195,14 @@ private fun MapPlaceholder(
  * 시설 정보 패널 (하단에서 슬라이드업) / 设施信息面板 (从底部滑出)
  */
 @Composable
-private fun FacilityInfoPanel(
+fun FacilityInfoPanel(
     facility: FacilityDetail,
     onToggleFavorite: () -> Unit,
-    onCallPhone: (String) -> Unit
+    onCallPhone: (String) -> Unit,
+    modifier: Modifier = Modifier // 추가
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
@@ -326,7 +328,7 @@ private fun FacilityInfoPanel(
 /**
  * 전화 걸기 기능 / 拨打电话功能
  */
-private fun makePhoneCall(context: Context, phoneNumber: String) {
+fun makePhoneCall(context: Context, phoneNumber: String) {
     try {
         val intent = Intent(Intent.ACTION_DIAL).apply {
             data = "tel:$phoneNumber".toUri()
