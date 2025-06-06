@@ -1,5 +1,6 @@
 package com.example.mobile2team.Screen
 
+import android.R.attr.phoneNumber
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -241,6 +242,26 @@ fun FacilityInfoPanel(
                     // 전화번호 직접 표시 / 直接显示电话号码
                     Text(
                         text = facility.phoneNumber ?: "전화번호 정보 없음",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    // 상세주소 표시 / 直接显示电话号码
+                    Text(
+                        text = facility.address ?: "",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    // 위도 경도 표시 - 사용자 경로 표시할 때 사용할 것 같아서 작성해둠 / 直接显示电话号码
+                    Text(
+                        text = "위도 : ${facility.latitude.toString()}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    Text(
+                        text = "경도 : ${facility.longitude.toString()}",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
