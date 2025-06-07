@@ -1,6 +1,5 @@
 package com.example.mobile2team.Screen
 
-import android.R.attr.phoneNumber
 import android.content.Context
 import android.content.Intent
 import androidx.compose.foundation.background
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
@@ -46,7 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
@@ -56,10 +53,6 @@ import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
 
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.navigation.NavController
 
 /**
  * 복지시설 상세 정보 화면 - 시설 상세 정보 표시, 즐겨찾기 기능, 전화 걸기 기능
@@ -81,7 +74,7 @@ fun DetailScreen(
 
     //초기 데이터 로드 / 初始加载数据
     LaunchedEffect(facilityId) {
-        viewModel.loadFacilityDetail(facilityId)
+        viewModel.loadFacilityDetail(facilityId.toString())
     }
 
     Scaffold(
@@ -367,7 +360,7 @@ fun makePhoneCall(context: Context, phoneNumber: String) {
 
 }
 
-}
+
 
 /**
  * Mock 데이터 생성 함수 / 创建模拟数据函数

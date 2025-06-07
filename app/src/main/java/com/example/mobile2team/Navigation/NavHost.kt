@@ -44,7 +44,7 @@ fun AppNavHost(navController: NavHostController) {
 
             val facilityId = backStackEntry.arguments?.getString("facilityId")?.toLongOrNull()
 
-            val facilityId = backStackEntry.arguments?.getString("facilityId")
+            //val facilityId = backStackEntry.arguments?.getString("facilityId")
 
             if (facilityId != null) {
                 DetailScreen(navController = navController, facilityId = facilityId)
