@@ -56,6 +56,10 @@ import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.NavController
 
 /**
  * 복지시설 상세 정보 화면 - 시설 상세 정보 표시, 즐겨찾기 기능, 전화 걸기 기능
@@ -64,8 +68,10 @@ import com.example.mobile2team.ViewModel.DetailScreenViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
+    facilityId: Long,
     navController: NavController,
-    facilityId: String,
+
+
     viewModel: DetailScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
@@ -358,6 +364,9 @@ fun makePhoneCall(context: Context, phoneNumber: String) {
     } catch (e: Exception) {
         e.printStackTrace()
     }
+
+}
+
 }
 
 /**
@@ -375,4 +384,5 @@ fun makePhoneCall(context: Context, phoneNumber: String) {
 //        isFavorite = isFavorite
 //    )
 //}
+
 

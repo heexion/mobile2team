@@ -79,11 +79,12 @@ fun MainScreen(
                 Text("주변 복지시설 찾기", color = Color.Black)
             }
 
+
             Spacer(modifier = Modifier.height(24.dp))
 
             // 즐겨찾기 목록
             OutlinedButton(
-                onClick = onFavoritesClick,
+                onClick = { navController.navigate("favorites") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
