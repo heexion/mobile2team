@@ -1,19 +1,43 @@
 package com.example.mobile2team.Screen
 
+import android.R.attr.phoneNumber
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,12 +45,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
+
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
@@ -41,11 +70,14 @@ import androidx.navigation.NavController
 fun DetailScreen(
     facilityId: Long,
     navController: NavController,
+
+
     viewModel: DetailScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     var showInfoPanel by remember { mutableStateOf(false) }
+
 
     //초기 데이터 로드 / 初始加载数据
     LaunchedEffect(facilityId) {
@@ -64,7 +96,8 @@ fun DetailScreen(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { /* 뒤로가기 */ }) {
+                    IconButton(onClick = {
+                        navController.popBackStack()/* 뒤로가기 */ }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로 가기")
                     }
                 }
@@ -89,7 +122,6 @@ fun DetailScreen(
 
                 // 지도 영역 (클릭 가능) / 地图区域 (可点击)
                 MapPlaceholder(
-                    onMapClick = { showInfoPanel = !showInfoPanel },
                     modifier = Modifier.weight(1f) // 남은 공간 모두 차지
                 )
             }
@@ -114,20 +146,33 @@ fun DetailScreen(
     }
 }
 
+
+
+
 /**
  * 검색 바 플레이스홀더 / 搜索栏占位符
  */
 @Composable
 private fun SearchBarPlaceholder() {
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     OutlinedTextField(
-        value = "",
-        onValueChange = { },
-        modifier = Modifier.fillMaxWidth(),
+        value = searchQuery,
+        onValueChange = { searchQuery = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(50.dp),
         placeholder = { Text("검색") },
         leadingIcon = {
-            Icon(Icons.Default.Search, contentDescription = "검색")
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = "검색 아이콘"
+            )
         },
-        enabled = false
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Color(0xFF005500),
+            unfocusedBorderColor = Color(0xFF007F00),
+            cursorColor = Color(0xFF005500)
+        )
     )
 }
 
@@ -136,34 +181,19 @@ private fun SearchBarPlaceholder() {
  */
 @Composable
 private fun MapPlaceholder(
-    onMapClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onMapClick() }, // 클릭 이벤트 추가
+            .clickable { }, // 클릭 이벤트 제거
         colors = CardDefaults.cardColors(containerColor = Color.LightGray)
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = "지도",
-                    modifier = Modifier.size(48.dp),
-                    tint = Color.Gray
-                )
-                Text(
-                    text = "지도 화면",
-                    color = Color.Gray,
-                    fontSize = 16.sp
-                )
-            }
+            MapScreen()
         }
     }
 }
@@ -172,13 +202,14 @@ private fun MapPlaceholder(
  * 시설 정보 패널 (하단에서 슬라이드업) / 设施信息面板 (从底部滑出)
  */
 @Composable
-private fun FacilityInfoPanel(
+fun FacilityInfoPanel(
     facility: FacilityDetail,
     onToggleFavorite: () -> Unit,
-    onCallPhone: (String) -> Unit
+    onCallPhone: (String) -> Unit,
+    modifier: Modifier = Modifier // 추가
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
@@ -205,15 +236,38 @@ private fun FacilityInfoPanel(
                     )
 
                     // 운영시간 직접 표시 / 直接显示营业时间
+                    /*
                     Text(
                         text = facility.operatingHours ?: "운영시간 정보 없음",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
 
+                     */
+
                     // 전화번호 직접 표시 / 直接显示电话号码
                     Text(
                         text = facility.phoneNumber ?: "전화번호 정보 없음",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    // 상세주소 표시 / 直接显示电话号码
+                    Text(
+                        text = facility.address ?: "",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    // 위도 경도 표시 - 사용자 경로 표시할 때 사용할 것 같아서 작성해둠 / 直接显示电话号码
+                    Text(
+                        text = "위도 : ${facility.latitude.toString()}",
+                        fontSize = 14.sp,
+                        color = Color.Gray
+                    )
+
+                    Text(
+                        text = "경도 : ${facility.longitude.toString()}",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
@@ -301,7 +355,7 @@ private fun FacilityInfoPanel(
 /**
  * 전화 걸기 기능 / 拨打电话功能
  */
-private fun makePhoneCall(context: Context, phoneNumber: String) {
+fun makePhoneCall(context: Context, phoneNumber: String) {
     try {
         val intent = Intent(Intent.ACTION_DIAL).apply {
             data = "tel:$phoneNumber".toUri()
@@ -310,4 +364,25 @@ private fun makePhoneCall(context: Context, phoneNumber: String) {
     } catch (e: Exception) {
         e.printStackTrace()
     }
+
 }
+
+}
+
+/**
+ * Mock 데이터 생성 함수 / 创建模拟数据函数
+ */
+//private fun createMockFacility(id: Long, isFavorite: Boolean): FacilityDetail {
+//    return FacilityDetail(
+//        id = id,
+//        name = "강남구청 복지관",
+//        address = "서울특별시 강남구 학동로 426",
+//        phoneNumber = "02-3423-5000",
+//        operatingHours = "평일 09:00-18:00",
+//        averageRating = 4.2f,
+//        reviewCount = 23,
+//        isFavorite = isFavorite
+//    )
+//}
+
+

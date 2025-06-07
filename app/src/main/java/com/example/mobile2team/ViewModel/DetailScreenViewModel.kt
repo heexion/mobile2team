@@ -42,7 +42,7 @@ class DetailScreenViewModel : ViewModel() {
      * 지정된 ID의 복지시설 상세 정보를 불러오고 UI상태를 업데이트합니다
      * 加载指定ID的福利设施详细信息，并更新UI状态
      */
-    fun loadFacilityDetail(facilityId: Long) {
+    fun loadFacilityDetail(facilityId: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
                 isLoading = true,

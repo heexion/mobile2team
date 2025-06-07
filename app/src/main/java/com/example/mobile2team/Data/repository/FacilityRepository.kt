@@ -22,7 +22,7 @@ class FacilityRepository private constructor() {
     }
 
     // 사용자가 즐겨찾기한 복지시설의 ID를 저장 / 记录用户收藏的福利设施ID
-    private val favoriteIds = mutableSetOf<Long>()
+    private val favoriteIds = mutableSetOf<String>()
 
     // 사용자별 즐겨찾기 저장 / 按用户存储收藏
     private val userFavorites = mutableMapOf<String, MutableSet<Long>>()
@@ -41,7 +41,7 @@ class FacilityRepository private constructor() {
      * 추후 실제 API와 연동되면 이함수를 수정하거나 대체할 예정입니다
      * 测试函数（API连接后替换）
      */
-    suspend fun getFacilityDetail(facilityId: Long): Result<FacilityDetail> {
+    suspend fun getFacilityDetail(facilityId: String): Result<FacilityDetail> {
         return try {
             delay(1000)
             val facility = createMockFacility(facilityId)
@@ -55,7 +55,7 @@ class FacilityRepository private constructor() {
      * 즐겨찾기 상태 토글 / 切换收藏状态
      * 즐겨찾기 상태를 서버와 동기화해야 하는 경우, 코드를 수정해야합니다
      */
-    suspend fun toggleFavorite(facilityId: Long): Result<Boolean> {
+    suspend fun toggleFavorite(facilityId: String): Result<Boolean> {
         return try {
             val newStatus = if (favoriteIds.contains(facilityId)) {
                 favoriteIds.remove(facilityId)
@@ -207,6 +207,21 @@ class FacilityRepository private constructor() {
             reviewCount = reviewsMap[id]?.size ?: 0,  // 실제 리뷰 개수 반영
             imageUrl = "https://example.com/facility$id.jpg",
             isFavorite = favoriteIds.contains(id) || userFavorites["defaultUser"]?.contains(id) == true
+
+    private fun createMockFacility(id: String): FacilityDetail {
+        return FacilityDetail(
+            id = id,
+            name = "강남구청 복지관 $id",                  // 시설 이름 / 设施名称
+            address = "서울특별시 강남구 학동로 426",      // 상세 주소 / 详细地址
+            phoneNumber = "02-3423-5000",               // 전화번호 / 电话号码
+            latitude = 37.5172,                         // 위도 / 纬度
+            longitude = 127.0473,                       // 경도 / 经度
+
+            averageRating = 4.2f,                       // 평균 평점 / 平均评分
+            reviewCount = 23,                           // 리뷰 총 개수 / 总评价数
+            imageUrl = "https://example.com/facility$id.jpg", // 시설 이미지 URL / 设施图片URL
+            isFavorite = favoriteIds.contains(id)       // 즐겨찾기 상태 / 收藏状态
         )
     }
+    /* operatingHours = "평일 09:00-18:00",        // 운영 시간 / 营业时间*/
 }
