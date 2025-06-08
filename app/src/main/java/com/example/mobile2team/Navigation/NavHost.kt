@@ -14,6 +14,7 @@ import com.example.mobile2team.Screen.LoginScreen
 import com.example.mobile2team.Screen.MainScreen
 import com.example.mobile2team.Screen.ProfileScreen
 import com.example.mobile2team.Screen.RegisterScreen
+import com.example.mobile2team.Screen.ReviewScreen
 import com.example.mobile2team.Screen.SearchScreen
 import com.example.mobile2team.ViewModel.UserViewModel
 
@@ -42,20 +43,25 @@ fun AppNavHost(navController: NavHostController) {
         }
         composable("detail/{facilityId}") { backStackEntry ->
 
-            val facilityId = backStackEntry.arguments?.getString("facilityId")?.toLongOrNull()
-
             val facilityId = backStackEntry.arguments?.getString("facilityId")
+
+            //val facilityId = backStackEntry.arguments?.getString("facilityId")
 
             if (facilityId != null) {
                 DetailScreen(navController = navController, facilityId = facilityId)
             } else {
                 // 에러 처리 또는 기본값 처리
             }
+        }
 
         composable("favorites") {
             FavoriteScreen(navController = navController)
         }
-
-
+        composable("review/{facilityId}") { backStackEntry ->
+            val facilityId = backStackEntry.arguments?.getString("facilityId")
+            if (facilityId != null) {
+                ReviewScreen(facilityId = facilityId)
+            }
+        }
     }
 }

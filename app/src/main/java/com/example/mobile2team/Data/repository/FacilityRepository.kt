@@ -1,7 +1,6 @@
 package com.example.mobile2team.Data.repository
 
 import com.example.mobile2team.Data.model.FacilityDetail
-import com.example.mobile2team.Data.model.Review
 import kotlinx.coroutines.delay
 
 /**
@@ -25,15 +24,7 @@ class FacilityRepository private constructor() {
     private val favoriteIds = mutableSetOf<String>()
 
     // 사용자별 즐겨찾기 저장 / 按用户存储收藏
-    private val userFavorites = mutableMapOf<String, MutableSet<Long>>()
-
-    // Mock 리뷰 데이터 저장 / 存储模拟评论数据
-    private val reviewsMap = mutableMapOf<Long, MutableList<Review>>()
-
-    init {
-        // 테스트용 리뷰 데이터 초기화 / 初始化测试评论数据
-        initMockReviews()
-    }
+    private val userFavorites = mutableMapOf<String, MutableSet<String>>()
 
     /**
      * 테스트용 함수
@@ -43,7 +34,6 @@ class FacilityRepository private constructor() {
      */
     suspend fun getFacilityDetail(facilityId: String): Result<FacilityDetail> {
         return try {
-            delay(1000)
             val facility = createMockFacility(facilityId)
             Result.success(facility)
         } catch (e: Exception) {
@@ -92,7 +82,7 @@ class FacilityRepository private constructor() {
     /**
      * 사용자별 즐겨찾기 추가 / 为特定用户添加收藏
      */
-    suspend fun addUserFavorite(userId: String, facilityId: Long): Result<Boolean> {
+    suspend fun addUserFavorite(userId: String, facilityId: String): Result<Boolean> {
         return try {
             val userFavoriteSet = userFavorites.getOrPut(userId) { mutableSetOf() }
             userFavoriteSet.add(facilityId)
@@ -109,7 +99,7 @@ class FacilityRepository private constructor() {
     /**
      * 사용자별 즐겨찾기 제거 / 为特定用户移除收藏
      */
-    suspend fun removeUserFavorite(userId: String, facilityId: Long): Result<Boolean> {
+    suspend fun removeUserFavorite(userId: String, facilityId: String): Result<Boolean> {
         return try {
             val userFavoriteSet = userFavorites[userId]
             userFavoriteSet?.remove(facilityId)
@@ -140,88 +130,20 @@ class FacilityRepository private constructor() {
     }
 
     /**
-     * 특정 시설의 리뷰 목록 조회 / 获取特定设施的评论列表
-     */
-    suspend fun getReviews(facilityId: Long): Result<List<Review>> {
-        return try {
-            val reviews = reviewsMap[facilityId] ?: emptyList()
-            Result.success(reviews)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    /**
-     * Mock 리뷰 데이터 초기화 / 初始化模拟评论数据
-     */
-    private fun initMockReviews() {
-        for (facilityId in 1L..5L) {
-            val reviews = mutableListOf<Review>()
-
-            reviews.add(Review(
-                userId = "user1",
-                content = "***********",
-                rating = 5
-            ))
-
-            reviews.add(Review(
-                userId = "user2",
-                content = "***********",
-                rating = 4
-            ))
-
-            reviews.add(Review(
-                userId = "user3",
-                content = "***********",
-                rating = 3
-            ))
-
-            reviewsMap[facilityId] = reviews
-        }
-    }
-
-    /**
      * Mock 데이터 생성 함수 / 创建模拟数据的函数
      */
-    private fun createMockFacility(id: Long): FacilityDetail {
-        // 다양한 시설 이름 / 多样化的设施名称
-        val facilityNames = listOf(
-            "복지시설1",
-            "복지시설2",
-            "복지시설3",
-            "복지시설4",
-            "복지시설5"
-        )
-
-        val index = (id.toInt() - 1) % facilityNames.size
-
-        return FacilityDetail(
-            id = id,
-            name = facilityNames[index],
-            address = "서울특별시 광진구 능동로",
-            phoneNumber = "010-1234-5678",
-            latitude = 37.5172,
-            longitude = 127.0473,
-            operatingHours = "평일 09:00-18:00",
-            averageRating = 4.2f,
-            reviewCount = reviewsMap[id]?.size ?: 0,  // 실제 리뷰 개수 반영
-            imageUrl = "https://example.com/facility$id.jpg",
-            isFavorite = favoriteIds.contains(id) || userFavorites["defaultUser"]?.contains(id) == true
-
     private fun createMockFacility(id: String): FacilityDetail {
         return FacilityDetail(
             id = id,
-            name = "강남구청 복지관 $id",                  // 시설 이름 / 设施名称
-            address = "서울특별시 강남구 학동로 426",      // 상세 주소 / 详细地址
-            phoneNumber = "02-3423-5000",               // 전화번호 / 电话号码
-            latitude = 37.5172,                         // 위도 / 纬度
-            longitude = 127.0473,                       // 경도 / 经度
-
-            averageRating = 4.2f,                       // 평균 평점 / 平均评分
-            reviewCount = 23,                           // 리뷰 총 개수 / 总评价数
-            imageUrl = "https://example.com/facility$id.jpg", // 시설 이미지 URL / 设施图片URL
-            isFavorite = favoriteIds.contains(id)       // 즐겨찾기 상태 / 收藏状态
+            name = "복지 시설1",
+            address = "서울특별시 강남구 능동로 123",
+            phoneNumber = "010-1234-5678",
+            latitude = 37.5172,
+            longitude = 127.0473,
+            averageRating = 4.5f,
+            reviewCount = 5,
+            imageUrl = "https://example.com/facility.jpg",
+            isFavorite = favoriteIds.contains(id) || (userFavorites["defaultUser"]?.contains(id) ?: false)
         )
     }
-    /* operatingHours = "평일 09:00-18:00",        // 운영 시간 / 营业时间*/
 }

@@ -37,7 +37,7 @@ fun FavoriteScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var isEditMode by remember { mutableStateOf(false) }
-    var selectedItems by remember { mutableStateOf(setOf<Long>()) }
+    var selectedItems by remember { mutableStateOf(setOf<String>()) }  // 改为 String 类型
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -100,7 +100,7 @@ fun FavoriteScreen(
                                 selectedItems = if (selectedItems.size == uiState.favorites.size) {
                                     emptySet()
                                 } else {
-                                    uiState.favorites.map { it.id }.toSet()
+                                    uiState.favorites.map { it.id }.toSet()  // id 已经是 String
                                 }
                             }
                         ) {
@@ -197,7 +197,7 @@ fun FavoriteScreen(
                 TextButton(
                     onClick = {
                         selectedItems.forEach { id ->
-                            viewModel.removeFavorite(id)
+                            viewModel.removeFavorite(id)  // id 现在是 String
                         }
                         selectedItems = emptySet()
                         isEditMode = false
@@ -304,7 +304,7 @@ private fun FavoriteItem(
                         tint = Color(0xFFFFD700)
                     )
                     Text(
-                        text = "${facility.averageRating} (${facility.reviewCount})",
+                        text = "${facility.averageRating ?: 0.0f} (${facility.reviewCount})",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )

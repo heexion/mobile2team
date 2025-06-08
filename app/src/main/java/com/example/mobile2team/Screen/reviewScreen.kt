@@ -15,7 +15,10 @@ import com.example.mobile2team.Data.model.Review
 
 //@Preview
 @Composable
-fun ReviewScreen(viewModel: ReviewViewModel = viewModel()) {
+fun ReviewScreen(
+    facilityId: String,
+    viewModel: ReviewViewModel = viewModel()
+) {
     val content by viewModel::content
     val rating by viewModel::rating
     val error by viewModel::errorMessage

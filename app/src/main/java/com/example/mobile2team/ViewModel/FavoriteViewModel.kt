@@ -73,7 +73,7 @@ class FavoriteViewModel : ViewModel() {
     /**
      * 즐겨찾기 삭제 / 删除收藏
      */
-    fun removeFavorite(facilityId: Long) {
+    fun removeFavorite(facilityId: String) {
         viewModelScope.launch {
             repository.removeUserFavorite(currentUserId, facilityId)
                 .onSuccess {
