@@ -10,6 +10,26 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,18 +37,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+
+import androidx.compose.ui.text.input.TextFieldValue
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
+
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.NavController
 import androidx.compose.foundation.Image
 import androidx.compose.ui.layout.ContentScale
+
 
 /**
  * 복지시설 상세 정보 화면 - 시설 상세 정보 표시, 즐겨찾기 기능, 전화 걸기 기능
@@ -45,7 +70,7 @@ fun DetailScreen(
 
     // 초기 데이터 로드 / 初始加载数据
     LaunchedEffect(facilityId) {
-        viewModel.loadFacilityDetail(facilityId)
+        viewModel.loadFacilityDetail(facilityId.toString())
     }
 
     // 직접 정보 패널만 표시 / 直接显示信息面板
@@ -249,3 +274,27 @@ fun makePhoneCall(context: Context, phoneNumber: String) {
         e.printStackTrace()
     }
 }
+
+
+}
+
+
+
+/**
+ * Mock 데이터 생성 함수 / 创建模拟数据函数
+ */
+//private fun createMockFacility(id: Long, isFavorite: Boolean): FacilityDetail {
+//    return FacilityDetail(
+//        id = id,
+//        name = "강남구청 복지관",
+//        address = "서울특별시 강남구 학동로 426",
+//        phoneNumber = "02-3423-5000",
+//        operatingHours = "평일 09:00-18:00",
+//        averageRating = 4.2f,
+//        reviewCount = 23,
+//        isFavorite = isFavorite
+//    )
+//}
+
+
+

@@ -79,7 +79,7 @@ class FavoriteViewModel : ViewModel() {
                 .onSuccess {
                     // 삭제 성공 시 목록에서 제거 / 删除成功后从列表中移除
                     _uiState.value = _uiState.value.copy(
-                        favorites = _uiState.value.favorites.filter { it.id != facilityId }
+                        favorites = _uiState.value.favorites.filter { it.id != facilityId.toString() }
                     )
                 }
                 .onFailure { exception ->
