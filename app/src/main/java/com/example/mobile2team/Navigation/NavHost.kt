@@ -1,15 +1,13 @@
 package com.example.mobile2team.Navigation
 
+
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.mobile2team.Screen.DetailScreen
-
 import com.example.mobile2team.Screen.FavoriteScreen
-
-
 import com.example.mobile2team.Screen.LoginScreen
 import com.example.mobile2team.Screen.MainScreen
 import com.example.mobile2team.Screen.ProfileScreen
@@ -30,8 +28,9 @@ fun AppNavHost(navController: NavHostController) {
             MainScreen(navController = navController, userViewModel)
         }
         composable("search") {
-            SearchScreen()
+            SearchScreen(navController = navController)
         }
+
         composable("login") {
             LoginScreen(navController = navController, userViewModel)
         }

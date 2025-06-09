@@ -65,6 +65,13 @@ class DetailScreenViewModel : ViewModel() {
         }
     }
 
+    fun loadFacilityDetailFromList(id: String, allFacilities: List<FacilityDetail>) {
+        viewModelScope.launch {
+            val facility = allFacilities.find { it.id == id }
+            _uiState.value = _uiState.value.copy(facility = facility)
+        }
+    }
+
     // 즐겨찾기 추가 또는 제거 / 添加或取消收藏
     fun toggleFavorite() {
         val currentFacility = _uiState.value.facility ?: return
