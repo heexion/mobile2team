@@ -2,109 +2,119 @@ package com.example.mobile2team.Screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import com.example.mobile2team.Data.assets.toFacilityDetail
+import com.example.mobile2team.Data.model.FacilityDetail
+import com.google.gson.Gson
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
-import com.naver.maps.map.NaverMap
+import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
 import com.naver.maps.map.compose.rememberMarkerState
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.runtime.collectAsState
-import androidx.lifecycle.ViewModel
-import com.google.gson.Gson
-import com.example.mobile2team.Data.assets.FeatureCollection
-import com.example.mobile2team.Data.assets.toFacilityDetail
-import com.example.mobile2team.Data.model.FacilityDetail
-import com.example.mobile2team.ViewModel.FacilityViewModel
-import kotlin.collections.firstOrNull
-import com.example.mobile2team.Screen.DetailScreen
-import com.example.mobile2team.ViewModel.DetailScreenViewModel
-
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
-fun MapScreen(modifier: Modifier = Modifier) {
+fun MapScreen(
+    searchQuery: String,
+    selectedFacility: MutableState<FacilityDetail?>,
+    onFacilitySelected: (FacilityDetail) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
-    val (selectedFacility, setSelectedFacility) = remember { mutableStateOf<FacilityDetail?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
-    // 1. JSON 파싱
-    val facilityDetails by remember {
+    // JSON 파싱
+    val facilityDetails = remember {
+        val jsonString = context.assets.open("facility.json").bufferedReader().use { it.readText() }
+        val gson = Gson()
+        val vworldResponse = gson.fromJson(jsonString, com.example.mobile2team.Data.assets.VWorldResponse::class.java)
         mutableStateOf(
-            run {
-                val jsonString = context.assets.open("facility.json").bufferedReader().use { it.readText() }
-                val gson = Gson()
-                val vworldResponse = gson.fromJson(jsonString, com.example.mobile2team.Data.assets.VWorldResponse::class.java)
-                vworldResponse
-                    .response
-                    .result
-                    .featureCollection
-                    .features
-                    .map { it.toFacilityDetail() }
-            }
+            vworldResponse.response.result.featureCollection.features.map { it.toFacilityDetail() }
         )
     }
 
-    // 2. 기존 마커 표시 코드 (facilityDetails 사용)
+    // 검색어에 따른 필터링
+    val filteredFacilities = facilityDetails.value.filter {
+        it.name?.contains(searchQuery, ignoreCase = true) == true
+    }
+
+    // 지도 초기 위치
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition(
-            facilityDetails.firstOrNull()?.let { LatLng(it.latitude ?: 0.0, it.longitude ?: 0.0) }
+            filteredFacilities.firstOrNull()?.let { LatLng(it.latitude ?: 0.0, it.longitude ?: 0.0) }
                 ?: LatLng(37.5408, 127.0793),
             13.0
         )
     }
 
-Box(modifier = Modifier.fillMaxSize()) {
-    NaverMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
-    ) {
-        facilityDetails.forEach { facility ->
-            if (facility.latitude != null && facility.longitude != null) {
-                Marker(
-                    state = rememberMarkerState(
-                        position = LatLng(
-                            facility.latitude!!,
-                            facility.longitude!!
+    // 검색어 변경 시 가장 가까운 시설로 이동 + 선택
+    LaunchedEffect(searchQuery) {
+        val baseLocation = cameraPositionState.position.target
+        val closestMatch = filteredFacilities
+            .filter { it.latitude != null && it.longitude != null }
+            .minByOrNull { facility ->
+                val facilityLatLng = LatLng(facility.latitude!!, facility.longitude!!)
+                baseLocation.distanceTo(facilityLatLng)
+            }
+
+        if (closestMatch != null) {
+            coroutineScope.launch {
+                cameraPositionState.move(
+                    CameraUpdate.toCameraPosition(
+                        CameraPosition(
+                            LatLng(closestMatch.latitude!!, closestMatch.longitude!!),
+                            15.0
                         )
-                    ),
-                    captionText = facility.name,
-                    onClick = {
-                        setSelectedFacility(facility)
-                        true // 클릭 이벤트 소비
-                    }
+                    )
                 )
+                selectedFacility.value = closestMatch // ✅ 여기 수정 완료
             }
         }
     }
 
-    // 마커 클릭 시 상세 정보 패널 표시
-    selectedFacility?.let { facility ->
-        FacilityInfoPanel(
-            facility = facility,
-            onToggleFavorite = { /*즐겨찾기 적용 x */},
-            onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber)},
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom=24.dp)     //상세화면 아래에 위치
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        NaverMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState
+        ) {
+            filteredFacilities.forEach { facility ->
+                if (facility.latitude != null && facility.longitude != null) {
+                    Marker(
+                        state = rememberMarkerState(
+                            position = LatLng(facility.latitude!!, facility.longitude!!)
+                        ),
+                        captionText = facility.name,
+                        onClick = {
+                            selectedFacility.value = facility // ✅ 여기도 수정
+                            onFacilitySelected(facility)      // 상세 카드에도 반영
+                            true
+                        }
+                    )
+                }
+            }
+        }
+
+        // 선택된 시설이 있을 경우 상세 정보 패널 표시 (맵 내부)
+//        selectedFacility.value?.let { facility ->
+//            FacilityInfoPanel(
+//                facility = facility,
+//                onToggleFavorite = { /* 즐겨찾기 기능 */ },
+//                onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber) },
+//                modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .padding(bottom = 24.dp)
+//            )
+//        }
     }
 }
-}
-
-
