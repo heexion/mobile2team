@@ -2,20 +2,14 @@ package com.example.mobile2team.Screen
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.Search
@@ -43,175 +37,81 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+
 import androidx.compose.ui.text.input.TextFieldValue
+
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.NavController
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+
 
 /**
  * 복지시설 상세 정보 화면 - 시설 상세 정보 표시, 즐겨찾기 기능, 전화 걸기 기능
- * 福利设施详细信息界面，显示设施详细信息，收藏功能，拨打电话功能
+ * 仅负责展示设施的详细信息面板
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
-    facilityId: Long,
+    facilityId: String,
     navController: NavController,
-
-
     viewModel: DetailScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-    var showInfoPanel by remember { mutableStateOf(false) }
 
-
-    //초기 데이터 로드 / 初始加载数据
+    // 초기 데이터 로드 / 初始加载数据
     LaunchedEffect(facilityId) {
         viewModel.loadFacilityDetail(facilityId.toString())
     }
 
-    Scaffold(
-        topBar = {
-            // 상단 앱바 / 顶部应用栏
-            TopAppBar(
-                title = {
-                    Text(
-                        text = "주변 복지시설", // 周边福利设施
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        navController.popBackStack()/* 뒤로가기 */ }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로 가기")
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // 메인 컨텐츠 / 主要内容
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-                // 검색 바 / 搜索栏
-                SearchBarPlaceholder()
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // 지도 영역 (클릭 가능) / 地图区域 (可点击)
-                MapPlaceholder(
-                    modifier = Modifier.weight(1f) // 남은 공간 모두 차지
-                )
-            }
-
-            // 정보 패널 (조건부 표시) / 信息面板 (条件显示)
-            if (showInfoPanel && uiState.facility != null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.BottomCenter)
-                ) {
-                    FacilityInfoPanel(
-                        facility = uiState.facility!!,
-                        onToggleFavorite = { viewModel.toggleFavorite() },
-                        onCallPhone = { phoneNumber ->
-                            makePhoneCall(context, phoneNumber)
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-
-
-/**
- * 검색 바 플레이스홀더 / 搜索栏占位符
- */
-@Composable
-private fun SearchBarPlaceholder() {
-    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-    OutlinedTextField(
-        value = searchQuery,
-        onValueChange = { searchQuery = it },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(50.dp),
-        placeholder = { Text("검색") },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = "검색 아이콘"
-            )
-        },
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = Color(0xFF005500),
-            unfocusedBorderColor = Color(0xFF007F00),
-            cursorColor = Color(0xFF005500)
-        )
-    )
-}
-
-/**
- * 지도 플레이스홀더 (클릭 가능) / 地图占位符 (可点击)
- */
-@Composable
-private fun MapPlaceholder(
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { }, // 클릭 이벤트 제거
-        colors = CardDefaults.cardColors(containerColor = Color.LightGray)
+    // 직접 정보 패널만 표시 / 直接显示信息面板
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            MapScreen()
+        uiState.facility?.let { facility ->
+            FacilityInfoPanel(
+                facility = facility,
+                onToggleFavorite = { viewModel.toggleFavorite() },
+                onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber) },
+                navController = navController
+            )
         }
     }
 }
 
 /**
- * 시설 정보 패널 (하단에서 슬라이드업) / 设施信息面板 (从底部滑出)
+ * 시설 정보 패널 - 복지시설 상세 정보를 표시하는 카드
+ * 设施信息面板 - 显示福利设施详细信息的卡片
  */
 @Composable
 fun FacilityInfoPanel(
     facility: FacilityDetail,
     onToggleFavorite: () -> Unit,
     onCallPhone: (String) -> Unit,
-    modifier: Modifier = Modifier // 추가
+    navController: NavController? = null,
+    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // 시설 정보 (라벨 없이 직접 표시) / 设施信息 (无标签直接显示)
             Row(
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -220,7 +120,7 @@ fun FacilityInfoPanel(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    // 기관명 직접 표시 / 直接显示机构名
+                    // 시설 이름 / 设施名称
                     Text(
                         text = facility.name,
                         fontSize = 16.sp,
@@ -228,74 +128,84 @@ fun FacilityInfoPanel(
                         color = Color.Black
                     )
 
-                    // 운영시간 직접 표시 / 直接显示营业时间
-                    /*
+                    // 주소 / 地址
                     Text(
-                        text = facility.operatingHours ?: "운영시간 정보 없음",
+                        text = facility.address,
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
 
-                     */
-
-                    // 전화번호 직접 표시 / 直接显示电话号码
+                    // 전화번호 / 电话号码
                     Text(
                         text = facility.phoneNumber ?: "전화번호 정보 없음",
                         fontSize = 14.sp,
                         color = Color.Gray
                     )
 
-                    // 상세주소 표시 / 直接显示电话号码
-                    Text(
-                        text = facility.address ?: "",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    // 평균 평점 / 平均评分
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = "평점",
+                            modifier = Modifier.size(16.dp),
+                            tint = Color(0xFFFFD700)  // 黄色
+                        )
+                        Text(
+                            text = "${facility.averageRating ?: 0.0f}",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
+                    }
 
-                    // 위도 경도 표시 - 사용자 경로 표시할 때 사용할 것 같아서 작성해둠 / 直接显示电话号码
-                    Text(
-                        text = "위도 : ${facility.latitude.toString()}",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
+                    // 리뷰 개수와 리뷰 보기 버튼 / 评论数和查看评论按钮
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "${facility.reviewCount}개 리뷰",
+                            fontSize = 14.sp,
+                            color = Color.Gray
+                        )
 
-                    Text(
-                        text = "경도 : ${facility.longitude.toString()}",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-
-                    // 리뷰 개수 직접 표시 / 直接显示评价数量
-                    Text(
-                        text = "${facility.reviewCount}개 리뷰",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-
-                    // 빈 공간 또는 추가 정보 / 空白或额外信息
-                    Text(
-                        text = "",
-                        fontSize = 14.sp
-                    )
+                        TextButton(
+                            onClick = {
+                                navController?.navigate("review/${facility.id}")
+                            },
+                            modifier = Modifier.height(32.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                            enabled = navController != null
+                        ) {
+                            Text(
+                                text = "리뷰 보기",
+                                fontSize = 12.sp,
+                                color = if (navController != null) Color.Blue else Color.Gray
+                            )
+                        }
+                    }
                 }
 
                 // 오른쪽 이미지 영역 / 右侧图片区域
                 Box(
                     modifier = Modifier
-                        .size(width = 150.dp, height = 110.dp)
+                        .size(width = 100.dp, height = 80.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(Color.Gray),
+                        .background(Color.LightGray),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "기관 사진",
-                        color = Color.White,
-                        fontSize = 12.sp
+                    Image(
+                        painter = painterResource(id = R.drawable.image1),
+                        contentDescription = "기관 사진",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // 기능 버튼들 / 功能按钮
             Row(
@@ -303,7 +213,10 @@ fun FacilityInfoPanel(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 // 즐겨찾기 버튼 / 收藏按钮
-                IconButton(onClick = onToggleFavorite) {
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.size(40.dp)
+                ) {
                     Icon(
                         painter = painterResource(
                             id = if (facility.isFavorite)
@@ -313,7 +226,7 @@ fun FacilityInfoPanel(
                         ),
                         contentDescription = "즐겨찾기",
                         tint = if (facility.isFavorite) Color(0xFFFFD700) else Color.Gray,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
@@ -321,30 +234,33 @@ fun FacilityInfoPanel(
                 IconButton(
                     onClick = {
                         facility.phoneNumber?.let { onCallPhone(it) }
-                    }
+                    },
+                    modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
                         Icons.Default.Phone,
                         contentDescription = "전화 걸기",
                         tint = Color.Gray,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
                 // 교통 정보 버튼 / 交通信息按钮
-                IconButton(onClick = { /* 교통 정보 */ }) {
+                IconButton(
+                    onClick = { /* 교통 정보 */ },
+                    modifier = Modifier.size(40.dp)
+                ) {
                     Icon(
                         painter = painterResource(id = R.drawable.baseline_directions_bus_24),
                         contentDescription = "교통 정보",
                         tint = Color.Gray,
-                        modifier = Modifier.size(32.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
         }
     }
 }
-
 /**
  * 전화 걸기 기능 / 拨打电话功能
  */
@@ -357,6 +273,8 @@ fun makePhoneCall(context: Context, phoneNumber: String) {
     } catch (e: Exception) {
         e.printStackTrace()
     }
+}
+
 
 }
 
@@ -377,5 +295,6 @@ fun makePhoneCall(context: Context, phoneNumber: String) {
 //        isFavorite = isFavorite
 //    )
 //}
+
 
 
