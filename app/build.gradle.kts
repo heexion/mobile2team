@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.implementation
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -86,6 +84,9 @@ dependencies {
 
     implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
+    implementation ("com.google.android.gms:play-services-location:21.0.1")
+    implementation ("io.github.fornewid:naver-map-compose:<latest>")
+    implementation ("io.github.fornewid:naver-map-location:21.0.2")
 
 
 
