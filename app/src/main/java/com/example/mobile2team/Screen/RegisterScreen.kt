@@ -129,8 +129,14 @@ fun RegisterScreen(
                         "비밀번호가 일치하지 않습니다."
                     }
                     else -> {
-                        userViewModel.setUserInfo(name, id, password)
-                        navController.navigate("login")
+                        // Firebase 회원가입 호출
+                        userViewModel.registerUser(name, id, password) { success, message ->
+                            if (success) {
+                                navController.navigate("login")
+                            } else {
+                                errorMessage = message
+                            }
+                        }
                         ""
                     }
                 }

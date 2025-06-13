@@ -48,7 +48,9 @@ fun AppNavHost(navController: NavHostController) {
             //val facilityId = backStackEntry.arguments?.getString("facilityId")
 
             if (facilityId != null) {
-                DetailScreen(navController = navController, facilityId = facilityId)
+                DetailScreen(navController = navController
+                    , facilityId = facilityId
+                    ,userViewModel = userViewModel)
             } else {
                 // 에러 처리 또는 기본값 처리
             }
