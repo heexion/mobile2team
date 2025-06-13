@@ -21,7 +21,9 @@ import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
 import com.naver.maps.map.compose.rememberMarkerState
+import com.naver.maps.map.compose.MapUiSettings
 import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
@@ -86,7 +88,10 @@ fun MapScreen(
     Box(modifier = modifier.fillMaxSize()) {
         NaverMap(
             modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState
+            cameraPositionState = cameraPositionState,
+            uiSettings = MapUiSettings(
+                isScrollGesturesEnabled = true
+            )
         ) {
             filteredFacilities.forEach { facility ->
                 if (facility.latitude != null && facility.longitude != null) {

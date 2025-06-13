@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,8 +63,7 @@ fun DetailScreen(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
-
-
+    val favorites by remember { userViewModel::favorites }
 
     // 초기 데이터 로드
     LaunchedEffect(facilityId) {
@@ -76,9 +76,16 @@ fun DetailScreen(
         contentAlignment = Alignment.Center
     ) {
         uiState.facility?.let { facility ->
+            val isFavorite = favorites[facility.id] == true
+            Log.d("Favorite", "UI isFavorite: $isFavorite for facilityId=${facility.id}")
             FacilityInfoPanel(
-                facility = facility,
-                onToggleFavorite = { viewModel.toggleFavorite() },
+                facility = facility.copy(isFavorite = isFavorite),
+                onToggleFavorite = {
+                    Log.d("Favorite", "별표 버튼 클릭: ${facility.id}")
+                    userViewModel.toggleFavorite(facility.id) { result ->
+                        Log.d("Favorite", "toggleFavorite 콜백: facilityId=${facility.id}, result=$result")
+                    }
+                },
                 onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber) },
                 navController = navController
             )

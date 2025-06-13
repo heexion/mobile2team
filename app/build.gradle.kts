@@ -50,6 +50,7 @@ secrets{
 
 dependencies {
 
+    implementation("com.google.maps.android:maps-compose:2.11.4")
     implementation ("com.naver.maps:map-sdk:3.21.0")
     implementation(libs.naver.map.compose)
     implementation(libs.androidx.core.ktx)
