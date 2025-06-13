@@ -2,6 +2,7 @@ package com.example.mobile2team.Screen
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +46,7 @@ import androidx.navigation.NavController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
+import com.example.mobile2team.ViewModel.UserViewModel
 
 
 /**
@@ -55,12 +57,15 @@ import com.example.mobile2team.ViewModel.DetailScreenViewModel
 fun DetailScreen(
     facilityId: String,
     navController: NavController,
+    userViewModel: UserViewModel,
     viewModel: DetailScreenViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
 
-    // 초기 데이터 로드 / 初始加载数据
+
+
+    // 초기 데이터 로드
     LaunchedEffect(facilityId) {
         viewModel.loadFacilityDetail(facilityId.toString())
     }
