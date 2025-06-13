@@ -44,7 +44,14 @@ fun FavoriteScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("즐겨찾기 목록") },
+                title = {
+                    Text(
+                        text = "즐겨찾기 목록",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "뒤로 가기")
@@ -139,7 +146,8 @@ private fun FavoriteItem(
 @Composable
 private fun EmptyFavoritesContent() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(

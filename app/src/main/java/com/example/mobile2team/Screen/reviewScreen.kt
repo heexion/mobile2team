@@ -1,14 +1,18 @@
 package com.example.mobile2team.Screen
 
+import android.widget.RatingBar
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mobile2team.ViewModel.ReviewViewModel
 import com.example.mobile2team.Data.model.Review
@@ -24,40 +28,67 @@ fun ReviewScreen(
     val error by viewModel::errorMessage
     val userReviews by viewModel::userReviews
 
-    LazyColumn(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item {
-            TextField(
-                value = content,
-                onValueChange = { viewModel.content = it },
-                label = { Text("리뷰 내용") },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
+        Spacer(modifier = Modifier.height(50.dp))
 
-        item {
-            RatingBar(rating = rating, onRatingChanged = { viewModel.rating = it })
-        }
 
-        item {
-            error?.let { Text(it, color = Color.Red) }
-        }
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
 
-        item {
-            Button(
-                onClick = { viewModel.submitReview() },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("리뷰 제출")
+        ) {
+            item {
+                OutlinedTextField(
+                    value = content,
+                    onValueChange = { viewModel.content = it },
+                    label = { Text("리뷰 내용을 작성하세요.")},
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                )
             }
-        }
 
-        items(userReviews, key = { it.id }) { review ->
-            ReviewItem(review)
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            item {
+                RatingBar(rating = rating, onRatingChanged = { viewModel.rating = it })
+            }
+
+
+
+            item {
+                error?.let { Text(it, color = Color.Red) }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+            item {
+                Button(
+                    onClick = { viewModel.submitReview() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF005500)),
+                    shape = RoundedCornerShape(4.dp),
+                    modifier = Modifier.fillMaxWidth().height(50.dp)
+                ) {
+                    Text("리뷰 제출", color = Color.White, fontSize = 16.sp)
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+            items(userReviews, key = { it.id }) { review ->
+                ReviewItem(review)
+            }
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+            }
         }
     }
 }
