@@ -46,7 +46,7 @@ fun FavoriteScreen(
                 title = {
                     Text(
                         text = "즐겨찾기 목록",
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -330,7 +330,8 @@ private fun FavoriteItem(
 @Composable
 private fun EmptyFavoritesContent() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(
