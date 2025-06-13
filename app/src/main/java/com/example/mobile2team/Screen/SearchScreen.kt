@@ -28,9 +28,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.Util.FacilityInfoPanel
 
@@ -50,11 +52,11 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Text(
             text = "주변 복지시설",
-            fontSize = 22.sp,
+            fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
 
@@ -81,7 +83,7 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
             )
         )
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 지도 화면 Placeholder
         Box(
@@ -101,7 +103,7 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
             //Text("지도 화면", color = Color.DarkGray)
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 상세 정보 박스
         selectedFacility.value?.let { facility ->
@@ -120,5 +122,7 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
 //@Preview
 //@Composable
 //private fun DetailScreenPreview() {
-//    SearchScreen()
+//    val fakeNavController = rememberNavController()
+//
+//    SearchScreen(fakeNavController)
 //}

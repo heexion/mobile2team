@@ -25,28 +25,38 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.mobile2team.ViewModel.UserViewModel
 
-
+//preview 작동하기 위해 view model 인수로 안넘겨줄려고 분리
 @Composable
 fun MainScreen(
     navController: NavController,
-    userViewModel: UserViewModel,
-    modifier: Modifier = Modifier,
-    onSearchClick: () -> Unit = {},
-    onFavoritesClick: () -> Unit = {},
-    onProfileClick: () -> Unit = {},
+    userViewModel: UserViewModel
+) {
+    MainScreenBody(
+        navController = navController,
+        isLoggedIn = userViewModel.isLoggedIn
+    )
+}
+
+@Composable
+fun MainScreenBody(
+    navController: NavController,
+    isLoggedIn: Boolean
 ) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp),
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(70.dp))
 
         Text(
             text = "WellFit",
@@ -54,7 +64,7 @@ fun MainScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Column(
             modifier = Modifier
@@ -77,11 +87,11 @@ fun MainScreen(
             ) {
                 Icon(Icons.Default.Search, contentDescription = null, tint = Color.Black)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("주변 복지시설 찾기", color = Color.Black)
+                Text("주변 복지시설 찾기", color = Color.Black, fontSize = 16.sp)
             }
 
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))  //버튼 사이 간격
 
             // 즐겨찾기 목록
             OutlinedButton(
@@ -94,15 +104,15 @@ fun MainScreen(
             ) {
                 Icon(Icons.Default.Star, contentDescription = null, tint = Color.Black)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("즐겨찾기 목록", color = Color.Black)
+                Text("즐겨찾기 목록", color = Color.Black, fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // 내 정보
             OutlinedButton(
                 onClick = {
-                    if (userViewModel.isLoggedIn) {
+                    if (isLoggedIn) {
                         navController.navigate("profile")
                     } else {
                         navController.navigate("login")
@@ -124,11 +134,12 @@ fun MainScreen(
                         tint = Color.Black
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("내 정보", color = Color.Black)
+                    Text("내 정보", color = Color.Black, fontSize = 16.sp)
                 }
             }
         }
 
+        Spacer(modifier = Modifier.height(32.dp))
         // 하단 홈 아이콘
         Icon(
             imageVector = Icons.Default.Home,
@@ -138,14 +149,17 @@ fun MainScreen(
                 .size(28.dp),
             tint = Color.Black
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
     }
 }
 
+@Preview
+@Composable
+private fun MainScreenPreview() {
+    val fakeNavController = rememberNavController()
 
-//@Preview
-//@Composable
-//private fun MainScreenPreview() {
-//    val fakeNavController = rememberNavController()
-//    MainScreen(navController = fakeNavController)
-//
-//}
+    MainScreenBody(navController = fakeNavController, isLoggedIn=true)
+
+}
