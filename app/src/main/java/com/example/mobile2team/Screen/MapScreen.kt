@@ -78,7 +78,7 @@ fun MapScreen(
                         )
                     )
                 )
-                selectedFacility.value = closestMatch // ✅ 여기 수정 완료
+                selectedFacility.value = closestMatch
             }
         }
     }
@@ -96,8 +96,8 @@ fun MapScreen(
                         ),
                         captionText = facility.name,
                         onClick = {
-                            selectedFacility.value = facility // ✅ 여기도 수정
-                            onFacilitySelected(facility)      // 상세 카드에도 반영
+                            selectedFacility.value = facility
+                            onFacilitySelected(facility)
                             true
                         }
                     )

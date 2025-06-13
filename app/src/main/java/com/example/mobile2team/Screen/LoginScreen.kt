@@ -88,14 +88,18 @@ fun LoginScreen(
                     id.isBlank() || password.isBlank() -> {
                         errorMessage = "아이디와 비밀번호를 모두 입력해주세요."
                     }
-                    userViewModel.checkLogin(id, password) -> {
-                        errorMessage = ""
-                        navController.navigate("main") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    }
                     else -> {
-                        errorMessage = "아이디 또는 비밀번호가 올바르지 않습니다."
+                        // Firebase 로그인 호출
+                        userViewModel.loginUser(id, password) { success, message ->
+                            if (success) {
+                                errorMessage = ""
+                                navController.navigate("main") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = message
+                            }
+                        }
                     }
                 }
             },
