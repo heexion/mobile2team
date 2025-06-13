@@ -24,8 +24,10 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,6 +48,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.R
+import com.example.mobile2team.Util.FacilityInfoPanel
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
 import com.example.mobile2team.ViewModel.UserViewModel
 
@@ -67,35 +70,57 @@ fun DetailScreen(
 
     // 초기 데이터 로드
     LaunchedEffect(facilityId) {
-        viewModel.loadFacilityDetail(facilityId.toString())
+        viewModel.loadFacilityDetail(facilityId)
     }
 
-    // 직접 정보 패널만 표시 / 直接显示信息面板
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        uiState.facility?.let { facility ->
-            val isFavorite = favorites[facility.id] == true
-            Log.d("Favorite", "UI isFavorite: $isFavorite for facilityId=${facility.id}")
-            FacilityInfoPanel(
-                facility = facility.copy(isFavorite = isFavorite),
-                onToggleFavorite = {
-                    Log.d("Favorite", "별표 버튼 클릭: ${facility.id}")
-                    userViewModel.toggleFavorite(facility.id) { result ->
-                        Log.d("Favorite", "toggleFavorite 콜백: facilityId=${facility.id}, result=$result")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("시설 상세 정보") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_arrow_back_24),
+                            contentDescription = "뒤로가기"
+                        )
                     }
-                },
-                onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber) },
-                navController = navController
+                }
             )
         }
+    ){ paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            uiState.facility?.let { facility ->
+                val isFavorite = favorites[facility.id] == true
+                Log.d("Favorite", "UI isFavorite: $isFavorite for facilityId=${facility.id}")
+                FacilityInfoPanel(
+                    facility = facility.copy(isFavorite = isFavorite),
+                    onToggleFavorite = {
+                        Log.d("Favorite", "별표 버튼 클릭: ${facility.id}")
+                        userViewModel.toggleFavorite(facility.id) { result ->
+                            Log.d(
+                                "Favorite",
+                                "toggleFavorite 콜백: facilityId=${facility.id}, result=$result"
+                            )
+                        }
+                    },
+                    onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber) },
+                    navController = navController
+                )
+            }
+        }
     }
+
+
 }
+
 
 /**
  * 시설 정보 패널 - 복지시설 상세 정보를 표시하는 카드
- * 设施信息面板 - 显示福利设施详细信息的卡片
  */
 @Composable
 fun FacilityInfoPanel(
