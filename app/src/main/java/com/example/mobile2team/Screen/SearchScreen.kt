@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,10 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.Util.FacilityInfoPanel
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 
 
 
@@ -76,6 +82,9 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
                     contentDescription = "검색 아이콘"
                 )
             },
+            keyboardOptions = KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Search
+            ),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Color(0xFF005500),
                 unfocusedBorderColor = Color(0xFF007F00),
@@ -122,7 +131,32 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
 //@Preview
 //@Composable
 //private fun DetailScreenPreview() {
+
+//    SearchScreen()
+//}
+
+fun loadFavorites(userId: String) {
+    val favoriteRef = FirebaseDatabase.getInstance()
+        .getReference("users")
+        .child(userId)
+        .child("favorites")
+    favoriteRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val loadedFavorites = mutableMapOf<String, Boolean>()
+            for (child in snapshot.children) {
+                val facilityId = child.key ?: continue
+                val isFavorite = child.getValue(Boolean::class.java) ?: false
+                loadedFavorites[facilityId] = isFavorite
+            }
+            //favorites.clear()
+            //favorites.putAll(loadedFavorites)
+        }
+        override fun onCancelled(error: DatabaseError) {}
+    })
+}
+
 //    val fakeNavController = rememberNavController()
 //
 //    SearchScreen(fakeNavController)
 //}
+

@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LocationOn
@@ -18,12 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import com.example.mobile2team.Data.model.FacilityDetail
-import com.example.mobile2team.ViewModel.FavoriteViewModel
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.example.mobile2team.ViewModel.UserViewModel
 
 /**
  * 즐겨찾기 목록 화면，사용자가 즐겨찾기한 복지시설 목록을 표시하고 관리할 수 있습니다
@@ -33,13 +31,16 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 @Composable
 fun FavoriteScreen(
     navController: NavHostController,
-    viewModel: FavoriteViewModel = viewModel()
+    userViewModel: UserViewModel,
+    allFacilities: List<FacilityDetail>
 ) {
-    val uiState by viewModel.uiState.collectAsState()
-    var isEditMode by remember { mutableStateOf(false) }
-    var selectedItems by remember { mutableStateOf(setOf<String>()) }  // 改为 String 类型
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    // 1. 즐겨찾기된 facilityId만 추출
+    val favoriteIds = userViewModel.favorites.filterValues { it }.keys
 
+    // 2. 즐겨찾기된 시설만 리스트로 추출
+    val favoriteFacilities = allFacilities.filter { it.id in favoriteIds }
+
+    // 3. UI에 favoriteFacilities를 사용
     Scaffold(
         topBar = {
             TopAppBar(
@@ -50,171 +51,38 @@ fun FavoriteScreen(
                         fontWeight = FontWeight.Bold
                     )
                 },
+
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "뒤로 가기"
-                        )
-                    }
-                },
-                actions = {
-                    // 편집 모드 토글 버튼 (휴지통 아이콘) / 编辑模式切换按钮（垃圾桶图标）
-                    IconButton(
-                        onClick = {
-                            isEditMode = !isEditMode
-                            if (!isEditMode) {
-                                selectedItems = emptySet()
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = if (isEditMode) "편집 완료" else "편집",
-                            tint = if (isEditMode) MaterialTheme.colorScheme.primary else Color.Gray
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-        },
-        bottomBar = {
-            // 편집 모드일 때만 하단 바 표시 / 仅在编辑模式下显示底部栏
-            if (isEditMode && uiState.favorites.isNotEmpty()) {
-                BottomAppBar(
-                    modifier = Modifier.height(70.dp),
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // 전체 선택 버튼 / 全选按钮
-                        TextButton(
-                            onClick = {
-                                selectedItems = if (selectedItems.size == uiState.favorites.size) {
-                                    emptySet()
-                                } else {
-                                    uiState.favorites.map { it.id }.toSet()  // id 已经是 String
-                                }
-                            }
-                        ) {
-                            Text(
-                                text = if (selectedItems.size == uiState.favorites.size)
-                                    "전체 해제" else "전체 선택",
-                                fontSize = 16.sp
-                            )
-                        }
-
-                        // 삭제 버튼 / 删除按钮
-                        Button(
-                            onClick = {
-                                if (selectedItems.isNotEmpty()) {
-                                    showDeleteDialog = true
-                                }
-                            },
-                            enabled = selectedItems.isNotEmpty(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color.Red,
-                                disabledContainerColor = Color.Gray
-                            )
-                        ) {
-                            Text(
-                                text = "삭제 (${selectedItems.size})",
-                                color = Color.White
-                            )
-                        }
+                        Icon(Icons.Default.ArrowBack, contentDescription = "뒤로 가기")
                     }
                 }
-            }
+            )
         }
     ) { paddingValues ->
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(uiState.isRefreshing),
-            onRefresh = { viewModel.refresh() },
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            when {
-                uiState.isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-
-                uiState.favorites.isEmpty() -> {
-                    EmptyFavoritesContent()
-                }
-
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(uiState.favorites) { facility ->
-                            FavoriteItem(
-                                facility = facility,
-                                isEditMode = isEditMode,
-                                isSelected = selectedItems.contains(facility.id),
-                                onItemClick = {
-                                    if (isEditMode) {
-                                        selectedItems = if (selectedItems.contains(facility.id)) {
-                                            selectedItems - facility.id
-                                        } else {
-                                            selectedItems + facility.id
-                                        }
-                                    } else {
-                                        navController.navigate("detail/${facility.id}")
-                                    }
-                                }
-                            )
-                        }
-                    }
+        if (favoriteFacilities.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentAlignment = androidx.compose.ui.Alignment.Center
+            ) {
+                Text("즐겨찾기한 시설이 없습니다.")
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(paddingValues),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(favoriteFacilities) { facility ->
+                    FavoriteItem(
+                        facility = facility,
+                        isEditMode = false,
+                        isSelected = false,
+                        onItemClick = { navController.navigate("detail/${facility.id}") }
+                    )
                 }
             }
         }
-    }
-
-    // 삭제 확인 다이얼로그 / 删除确认对话框
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("즐겨찾기 삭제") },
-            text = {
-                Text("선택한 ${selectedItems.size}개 항목을 즐겨찾기에서 삭제하시겠습니까?")
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        selectedItems.forEach { id ->
-                            viewModel.removeFavorite(id)  // id 现在是 String
-                        }
-                        selectedItems = emptySet()
-                        isEditMode = false
-                        showDeleteDialog = false
-                    }
-                ) {
-                    Text("삭제", color = Color.Red)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showDeleteDialog = false }
-                ) {
-                    Text("취소")
-                }
-            }
-        )
     }
 }
 
@@ -248,75 +116,23 @@ private fun FavoriteItem(
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
         ) {
-            // 체크박스 / 复选框
-            if (isEditMode) {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = null,
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary
-                    )
-                )
-            }
-
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = facility.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    fontSize = MaterialTheme.typography.titleMedium.fontSize,
+                    fontWeight = MaterialTheme.typography.titleMedium.fontWeight,
+                    maxLines = 1
                 )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        Icons.Default.LocationOn,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = Color.Gray
-                    )
-                    Text(
-                        text = facility.address,
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Star,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = Color(0xFFFFD700)
-                    )
-                    Text(
-                        text = "${facility.averageRating ?: 0.0f} (${facility.reviewCount})",
-                        fontSize = 14.sp,
-                        color = Color.Gray
-                    )
-                }
-            }
-
-            if (!isEditMode) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = "위치",
-                    modifier = Modifier.size(24.dp),
-                    tint = Color.Gray
+                Text(
+                    text = facility.address,
+                    fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
                 )
             }
         }

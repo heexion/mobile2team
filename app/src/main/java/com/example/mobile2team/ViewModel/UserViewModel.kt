@@ -1,5 +1,6 @@
 package com.example.mobile2team.ViewModel
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -17,6 +18,8 @@ class UserViewModel : ViewModel() {
     var isLoggedIn by mutableStateOf(false)  // 로그인 상태
     var currentUserId by mutableStateOf("")  // 현재 로그인한 사용자의 고유 ID
     var errorMessage by mutableStateOf<String?>(null)
+
+    var favorites by mutableStateOf<Map<String, Boolean>>(emptyMap())
 
     private val database = FirebaseDatabase.getInstance()
     private val usersRef = database.getReference("users")
@@ -55,38 +58,26 @@ class UserViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 val snapshot = usersRef.orderByChild("id").equalTo(inputId).get().await()
-                
                 if (snapshot.exists()) {
                     for (userSnapshot in snapshot.children) {
                         val user = userSnapshot.getValue(User::class.java)
                         if (user != null && user.password == inputPassword) {
-                            // 즐겨찾기 정보도 함께 읽어오기
-                            val favoritesSnapshot = userSnapshot.child("favorites")
-                            val favoritesMap = mutableMapOf<String, Boolean>()
-                            for (favorite in favoritesSnapshot.children) {
-                                val facilityId = favorite.key
-                                val isFavorite = favorite.getValue(Boolean::class.java) ?: false
-                                if (facilityId != null) {
-                                    favoritesMap[facilityId] = isFavorite
-                                }
-                            }
-                            // 로그인 성공
                             currentUserId = userSnapshot.key ?: ""
                             name = user.name
                             id = user.id
                             password = user.password
                             isLoggedIn = true
-                            // User 객체의 favorites 필드에 값 할당
-                            val userWithFavorites = user.copy(favorites = favoritesMap)
-                            // 필요하다면 userWithFavorites를 상태로 저장하거나 반환
+                            // 즐겨찾기 목록 동기화
+                            getUserFavorites { ids ->
+                                val newFavorites = ids.associateWith { true }
+                                favorites = newFavorites
+                            }
                             onResult(true, "로그인 성공")
                             return@launch
                         }
                     }
                 }
-                
                 onResult(false, "아이디 또는 비밀번호가 올바르지 않습니다.")
-                
             } catch (e: Exception) {
                 onResult(false, "로그인 중 오류가 발생했습니다: ${e.message}")
             }
@@ -114,9 +105,10 @@ class UserViewModel : ViewModel() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val favorites = mutableListOf<String>()
                 for (favoriteSnapshot in snapshot.children) {
-                    val facilityId = favoriteSnapshot.key
+                    val safeFacilityId = favoriteSnapshot.key ?: continue
                     val isFavorite = favoriteSnapshot.getValue(Boolean::class.java) ?: false
-                    if (isFavorite && facilityId != null) {
+                    if (isFavorite) {
+                        val facilityId = decodeFacilityId(safeFacilityId)
                         favorites.add(facilityId)
                     }
                 }
@@ -129,25 +121,47 @@ class UserViewModel : ViewModel() {
         })
     }
 
+    // Firebase 경로에 사용할 facilityId의 특수문자 치환
+    private fun encodeFacilityId(facilityId: String): String {
+        return facilityId.replace(".", ",")
+            .replace("#", ",")
+            .replace("$", ",")
+            .replace("[", ",")
+            .replace("]", ",")
+    }
+
+    // DB에서 읽어온 safeFacilityId를 원래 facilityId로 복원
+    private fun decodeFacilityId(safeFacilityId: String): String {
+        return safeFacilityId.replace(",", ".")
+        // 필요하다면 다른 특수문자도 역치환
+    }
+
     // 즐겨찾기 추가/제거
     fun toggleFavorite(facilityId: String, onResult: (Boolean) -> Unit) {
+        val safeFacilityId = encodeFacilityId(facilityId)
+        Log.d("Favorite", "toggleFavorite called: facilityId=$facilityId, safeFacilityId=$safeFacilityId, currentUserId=$currentUserId")
         if (currentUserId.isEmpty()) {
+            Log.e("Favorite", "currentUserId is empty! 로그인 필요")
             onResult(false)
             return
         }
 
         viewModelScope.launch {
             try {
-                val favoriteRef = usersRef.child(currentUserId).child("favorites").child(facilityId)
+                val favoriteRef = usersRef.child(currentUserId).child("favorites").child(safeFacilityId)
                 val snapshot = favoriteRef.get().await()
                 
                 val currentState = snapshot.getValue(Boolean::class.java) ?: false
                 val newState = !currentState
                 
                 favoriteRef.setValue(newState).await()
+                // 상태도 즉시 갱신 (원래 facilityId로 관리)
+                favorites = favorites.toMutableMap().apply { put(facilityId, newState) }
+                Log.d("Favorite", "즐겨찾기 상태 변경: $facilityId -> $newState (currentUserId=$currentUserId)")
                 onResult(newState)
                 
             } catch (e: Exception) {
+                Log.e("Favorite", "toggleFavorite error: ${e.message}")
                 onResult(false)
             }
         }

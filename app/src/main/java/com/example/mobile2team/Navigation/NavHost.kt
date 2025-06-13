@@ -2,6 +2,7 @@ package com.example.mobile2team.Navigation
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -18,10 +19,29 @@ import com.example.mobile2team.Screen.ReviewScreen
 import com.example.mobile2team.Screen.RouteScreen
 import com.example.mobile2team.Screen.SearchScreen
 import com.example.mobile2team.ViewModel.UserViewModel
+import androidx.compose.ui.platform.LocalContext
+import com.example.mobile2team.Data.model.FacilityDetail
+import com.example.mobile2team.Data.assets.toFacilityDetail
+import com.google.gson.Gson
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
     val userViewModel: UserViewModel = viewModel()
+    val context = LocalContext.current
+
+    // allFacilities를 AppNavHost에서 생성
+    val allFacilities by remember {
+        mutableStateOf(
+            run {
+                val jsonString = context.assets.open("facility.json").bufferedReader().use { it.readText() }
+                val gson = Gson()
+                val vworldResponse = gson.fromJson(jsonString, com.example.mobile2team.Data.assets.VWorldResponse::class.java)
+                vworldResponse.response.result.featureCollection.features.map { it.toFacilityDetail() }
+            }
+        )
+    }
 
     NavHost(
         navController = navController,
@@ -60,7 +80,11 @@ fun AppNavHost(navController: NavHostController) {
         }
 
         composable("favorites") {
-            FavoriteScreen(navController = navController)
+            FavoriteScreen(
+                navController = navController,
+                userViewModel = userViewModel,
+                allFacilities = allFacilities
+            )
         }
         composable("review/{facilityId}") { backStackEntry ->
             val facilityId = backStackEntry.arguments?.getString("facilityId")
