@@ -94,13 +94,15 @@ fun DetailScreen(
         ) {
             uiState.facility?.let { facility ->
                 val isFavorite = favorites[facility.id] == true
+                val isLoggedIn = userViewModel.isLoggedIn
                 FacilityInfoPanel(
                     facility = facility.copy(isFavorite = isFavorite),
                     onToggleFavorite = {
                         userViewModel.toggleFavorite(facility.id) { }
                     },
                     onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber) },
-                    navController = navController
+                    navController = navController,
+                    isLoggedIn = isLoggedIn
                 )
             }
         }
@@ -116,8 +118,10 @@ fun FacilityInfoPanel(
     onToggleFavorite: () -> Unit,
     onCallPhone: (String) -> Unit,
     navController: NavController? = null,
+    isLoggedIn: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -190,7 +194,13 @@ fun FacilityInfoPanel(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                IconButton(onClick = onToggleFavorite) {
+                IconButton(onClick = {
+                    if (isLoggedIn) {
+                        onToggleFavorite()
+                    } else {
+                        android.widget.Toast.makeText(context, "로그인을 해주세요", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }) {
                     Icon(
                         painter = painterResource(
                             id = if (facility.isFavorite)
