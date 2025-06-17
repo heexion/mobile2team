@@ -1,15 +1,33 @@
 package com.example.mobile2team.Screen
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.mobile2team.Data.assets.toFacilityDetail
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.google.gson.Gson
@@ -110,16 +128,65 @@ fun MapScreen(
             }
         }
 
-        // 선택된 시설이 있을 경우 상세 정보 패널 표시 (맵 내부)
-//        selectedFacility.value?.let { facility ->
-//            FacilityInfoPanel(
-//                facility = facility,
-//                onToggleFavorite = { /* 즐겨찾기 기능 */ },
-//                onCallPhone = { phoneNumber -> makePhoneCall(context, phoneNumber) },
-//                modifier = Modifier
-//                    .align(Alignment.BottomCenter)
-//                    .padding(bottom = 24.dp)
-//            )
-//        }
+        // 검색된 시설들의 카드 목록
+        if (filteredFacilities.isNotEmpty()) {
+            LazyRow(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(filteredFacilities) { facility ->
+                    Card(
+                        modifier = Modifier
+                            .width(280.dp)
+                            .clickable {
+                                selectedFacility.value = facility
+                                onFacilitySelected(facility)
+                                // 카드 클릭 시 해당 시설의 위치로 카메라 이동
+                                if (facility.latitude != null && facility.longitude != null) {
+                                    coroutineScope.launch {
+                                        cameraPositionState.move(
+                                            CameraUpdate.toCameraPosition(
+                                                CameraPosition(
+                                                    LatLng(facility.latitude!!, facility.longitude!!),
+                                                    15.0
+                                                )
+                                            )
+                                        )
+                                    }
+                                }
+                            },
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth()
+                        ) {
+                            Text(
+                                text = facility.name ?: "",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = facility.address ?: "",
+                                fontSize = 14.sp,
+                                color = Color.DarkGray,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = facility.phoneNumber ?: "전화번호 정보 없음",
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }

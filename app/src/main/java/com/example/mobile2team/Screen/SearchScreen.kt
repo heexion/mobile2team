@@ -54,8 +54,8 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp)
-            .verticalScroll(rememberScrollState()),
+            .padding(horizontal = 24.dp),
+
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(32.dp))
@@ -98,7 +98,7 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(500.dp)
+                .height(550.dp)
                 .background(Color(0xFFE0E0E0)),
             contentAlignment = Alignment.Center
         ) {
@@ -112,7 +112,6 @@ fun SearchScreen(navController: NavController,modifier: Modifier = Modifier) {
             //Text("지도 화면", color = Color.DarkGray)
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
 
         // 상세 정보 박스
         selectedFacility.value?.let { facility ->
