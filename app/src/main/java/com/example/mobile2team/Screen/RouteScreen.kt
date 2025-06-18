@@ -1,10 +1,12 @@
 package com.example.mobile2team.Screen
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Looper
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,9 +33,14 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
+import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.LocationTrackingMode
 import com.naver.maps.map.compose.MapProperties
@@ -45,29 +52,30 @@ import com.naver.maps.map.compose.rememberCameraPositionState
 import com.naver.maps.map.compose.rememberFusedLocationSource
 import com.naver.maps.map.compose.rememberMarkerState
 
-
-private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
-
-fun getCurrentLocation(context: Context, onResult: (LatLng?) -> Unit) {
+@SuppressLint("MissingPermission")
+fun startLocationUpdates(context: Context, onLocationUpdate: (LatLng) -> Unit) {
     val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+
+    val locationRequest = LocationRequest.create().apply {
+        interval = 3000
+        fastestInterval = 1000
+        priority = Priority.PRIORITY_HIGH_ACCURACY
+    }
+
+    val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            result.lastLocation?.let {
+                onLocationUpdate(LatLng(it.latitude, it.longitude))
+            }
+        }
+    }
 
     if (
         ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
         ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-    ) {
-        onResult(null)
-        return
-    }
+    ) return
 
-    fusedLocationClient.lastLocation
-        .addOnSuccessListener {
-            it?.let { location ->
-                onResult(LatLng(location.latitude, location.longitude))
-            } ?: onResult(null)
-        }
-        .addOnFailureListener {
-            onResult(null)
-        }
+    fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper())
 }
 
 @OptIn(ExperimentalNaverMapApi::class, ExperimentalPermissionsApi::class)
@@ -90,20 +98,28 @@ fun RouteScreen(
     )
 
     val locationSource = rememberFusedLocationSource()
+    val cameraPositionState = rememberCameraPositionState()
 
-
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition(endLatLng, 12.0)
-    }
-
+    // 권한 허용 시 위치 추적 시작
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted) {
-            locationSource.activate { /* no-op listener */ }
-            getCurrentLocation(context) { location ->
+            locationSource.activate { /* no-op */ }
+            startLocationUpdates(context) { location ->
                 startLatLng = location
             }
         } else {
             permissionsState.launchMultiplePermissionRequest()
+        }
+    }
+
+    // 위치 받아오면 카메라 이동
+    LaunchedEffect(startLatLng) {
+        startLatLng?.let { start ->
+            val centerLat = (start.latitude + destinationLat) / 2
+            val centerLng = (start.longitude + destinationLng) / 2
+            val center = LatLng(centerLat, centerLng)
+            val update = CameraUpdate.toCameraPosition(CameraPosition(center, 10.0))
+            cameraPositionState.move(update)
         }
     }
 
@@ -142,13 +158,23 @@ fun RouteScreen(
 
             Button(
                 onClick = {
-                    val uri = Uri.parse("https://map.naver.com/v5/directions/${startLatLng!!.latitude},${startLatLng!!.longitude}/${destinationLat},${destinationLng}")
-                    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+                    val uri = Uri.parse("nmap://route/public?slat=${startLatLng!!.latitude}&slng=${startLatLng!!.longitude}&dlat=$destinationLat&dlng=$destinationLng&appname=com.example.mobile2team")
+                    val intent = Intent(Intent.ACTION_VIEW, uri)
+                    intent.setPackage("com.nhn.android.nmap") // 네이버 지도 앱으로 연결
+
+                    if (intent.resolveActivity(context.packageManager) != null) {
+                        context.startActivity(intent)
+                    } else {
+                        // 네이버 지도 앱 없으면 웹 브라우저로 열기
+                        val fallbackUri = Uri.parse("https://map.naver.com/v5/directions/${startLatLng!!.latitude},${startLatLng!!.longitude}/${destinationLat},${destinationLng}")
+                        context.startActivity(Intent(Intent.ACTION_VIEW, fallbackUri))
+                    }
                 },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("길찾기 실행")
             }
+
 
             Spacer(modifier = Modifier.height(16.dp))
 
