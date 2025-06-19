@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Looper
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -158,22 +159,47 @@ fun RouteScreen(
 
             Button(
                 onClick = {
-                    val uri = Uri.parse("nmap://route/public?slat=${startLatLng!!.latitude}&slng=${startLatLng!!.longitude}&dlat=$destinationLat&dlng=$destinationLng&appname=com.example.mobile2team")
-                    val intent = Intent(Intent.ACTION_VIEW, uri)
-                    intent.setPackage("com.nhn.android.nmap") // 네이버 지도 앱으로 연결
+                    val start = startLatLng
+                    if (start != null && start.latitude.isFinite() && start.longitude.isFinite()) {
+                        val nmapUri = Uri.parse(
+                            "nmap://route/public" +
+                                    "?slat=${start.latitude}" +
+                                    "&slng=${start.longitude}" +
+                                    "&sname=현재위치" +
+                                    "&dlat=$destinationLat" +
+                                    "&dlng=$destinationLng" +
+                                    "&dname=${Uri.encode(destinationName)}" +
+                                    "&appname=com.example.mobile2team"
+                        )
 
-                    if (intent.resolveActivity(context.packageManager) != null) {
-                        context.startActivity(intent)
+                        val intent = Intent(Intent.ACTION_VIEW, nmapUri)
+
+
+                        try {
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            val fallbackUri = Uri.parse("https://map.naver.com/v5/directions")
+                            Toast.makeText(
+                                context,
+                                "네이버 지도 앱이 없거나 실행에 실패했습니다. 웹으로 이동합니다.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            context.startActivity(Intent(Intent.ACTION_VIEW, fallbackUri))
+                        }
                     } else {
-                        // 네이버 지도 앱 없으면 웹 브라우저로 열기
-                        val fallbackUri = Uri.parse("https://map.naver.com/v5/directions/${startLatLng!!.latitude},${startLatLng!!.longitude}/${destinationLat},${destinationLng}")
-                        context.startActivity(Intent(Intent.ACTION_VIEW, fallbackUri))
+                        Toast.makeText(context, "현재 위치를 불러오는 중입니다.", Toast.LENGTH_SHORT).show()
                     }
                 },
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("길찾기 실행")
             }
+
+
+
+
+
+
 
 
             Spacer(modifier = Modifier.height(16.dp))
