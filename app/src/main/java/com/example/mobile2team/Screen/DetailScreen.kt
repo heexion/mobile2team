@@ -53,6 +53,7 @@ import com.example.mobile2team.R
 import com.example.mobile2team.Util.FacilityInfoPanel
 import com.example.mobile2team.ViewModel.DetailScreenViewModel
 import com.example.mobile2team.ViewModel.UserViewModel
+import com.example.mobile2team.ViewModel.ReviewViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,14 +62,18 @@ fun DetailScreen(
     facilityId: String,
     navController: NavController,
     userViewModel: UserViewModel,
-    viewModel: DetailScreenViewModel = viewModel()
+    viewModel: DetailScreenViewModel = viewModel(),
+    reviewViewModel: ReviewViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val favorites by remember { userViewModel::favorites }
+    val reviewCount by remember { reviewViewModel::reviewCount }
+    val averageRating by remember { reviewViewModel::averageRating }
 
     LaunchedEffect(facilityId) {
         viewModel.loadFacilityDetail(facilityId)
+        reviewViewModel.fetchReviews(facilityId)
     }
 
     Scaffold(
@@ -96,7 +101,11 @@ fun DetailScreen(
                 val isFavorite = favorites[facility.id] == true
                 val isLoggedIn = userViewModel.isLoggedIn
                 FacilityInfoPanel(
-                    facility = facility.copy(isFavorite = isFavorite),
+                    facility = facility.copy(
+                        isFavorite = isFavorite, 
+                        reviewCount = reviewCount,
+                        averageRating = averageRating
+                    ),
                     onToggleFavorite = {
                         userViewModel.toggleFavorite(facility.id) { }
                     },

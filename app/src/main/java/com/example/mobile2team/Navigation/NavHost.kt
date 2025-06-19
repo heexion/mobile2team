@@ -25,11 +25,19 @@ import com.example.mobile2team.Data.assets.toFacilityDetail
 import com.google.gson.Gson
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import com.example.mobile2team.ViewModel.FacilityViewModel
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
     val userViewModel: UserViewModel = viewModel()
+    val facilityViewModel: FacilityViewModel = viewModel()
     val context = LocalContext.current
+
+    // 앱이 시작될 때 한 번만 호출하여 데이터베이스 초기화
+    // LaunchedEffect(Unit) {
+    //     facilityViewModel.addFacility(context)
+    // }
 
     // allFacilities를 AppNavHost에서 생성
     val allFacilities by remember {
@@ -89,7 +97,7 @@ fun AppNavHost(navController: NavHostController) {
         composable("review/{facilityId}") { backStackEntry ->
             val facilityId = backStackEntry.arguments?.getString("facilityId")
             if (facilityId != null) {
-                ReviewScreen(facilityId = facilityId)
+                ReviewScreen(facilityId = facilityId, userViewModel = userViewModel)
             }
         }
         composable(
