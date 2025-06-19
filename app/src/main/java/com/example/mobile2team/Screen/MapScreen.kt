@@ -1,5 +1,7 @@
 package com.example.mobile2team.Screen
 
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Text
@@ -28,20 +29,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
 import com.example.mobile2team.Data.assets.toFacilityDetail
 import com.example.mobile2team.Data.model.FacilityDetail
+import com.google.android.gms.location.LocationServices
 import com.google.gson.Gson
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
 import com.naver.maps.map.compose.rememberMarkerState
-import com.naver.maps.map.compose.MapUiSettings
 import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
@@ -54,7 +56,20 @@ fun MapScreen(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    // JSON 파싱
+    val currentLocation = remember { mutableStateOf<LatLng?>(null) }
+
+    // 현재 위치 가져오기
+    LaunchedEffect(Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    currentLocation.value = LatLng(it.latitude, it.longitude)
+                }
+            }
+        }
+    }
+
     val facilityDetails = remember {
         val jsonString = context.assets.open("facility.json").bufferedReader().use { it.readText() }
         val gson = Gson()
@@ -64,59 +79,31 @@ fun MapScreen(
         )
     }
 
-    // 검색어에 따른 필터링
-    val filteredFacilities = facilityDetails.value.filter {
-        it.name?.contains(searchQuery, ignoreCase = true) == true
+    val sortedFacilities = remember(currentLocation.value, searchQuery) {
+        val base = currentLocation.value ?: LatLng(37.5408, 127.0793)
+        facilityDetails.value
+            .filter { it.name?.contains(searchQuery, ignoreCase = true) == true && it.latitude != null && it.longitude != null }
+            .sortedBy { LatLng(it.latitude!!, it.longitude!!).distanceTo(base) }
     }
 
-    // 지도 초기 위치
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition(
-            filteredFacilities.firstOrNull()?.let { LatLng(it.latitude ?: 0.0, it.longitude ?: 0.0) }
-                ?: LatLng(37.5408, 127.0793),
+            currentLocation.value ?: sortedFacilities.firstOrNull()?.let { LatLng(it.latitude ?: 0.0, it.longitude ?: 0.0) }
+            ?: LatLng(37.5408, 127.0793),
             13.0
         )
-    }
-
-    // 검색어 변경 시 가장 가까운 시설로 이동 + 선택
-    LaunchedEffect(searchQuery) {
-        val baseLocation = cameraPositionState.position.target
-        val closestMatch = filteredFacilities
-            .filter { it.latitude != null && it.longitude != null }
-            .minByOrNull { facility ->
-                val facilityLatLng = LatLng(facility.latitude!!, facility.longitude!!)
-                baseLocation.distanceTo(facilityLatLng)
-            }
-
-        if (closestMatch != null) {
-            coroutineScope.launch {
-                cameraPositionState.move(
-                    CameraUpdate.toCameraPosition(
-                        CameraPosition(
-                            LatLng(closestMatch.latitude!!, closestMatch.longitude!!),
-                            15.0
-                        )
-                    )
-                )
-                selectedFacility.value = closestMatch
-            }
-        }
     }
 
     Box(modifier = modifier.fillMaxSize()) {
         NaverMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraPositionState,
-            uiSettings = MapUiSettings(
-                isScrollGesturesEnabled = true
-            )
+            uiSettings = MapUiSettings(isScrollGesturesEnabled = true)
         ) {
-            filteredFacilities.forEach { facility ->
+            sortedFacilities.forEach { facility ->
                 if (facility.latitude != null && facility.longitude != null) {
                     Marker(
-                        state = rememberMarkerState(
-                            position = LatLng(facility.latitude!!, facility.longitude!!)
-                        ),
+                        state = rememberMarkerState(position = LatLng(facility.latitude!!, facility.longitude!!)),
                         captionText = facility.name,
                         onClick = {
                             selectedFacility.value = facility
@@ -128,8 +115,7 @@ fun MapScreen(
             }
         }
 
-        // 검색된 시설들의 카드 목록
-        if (filteredFacilities.isNotEmpty()) {
+        if (sortedFacilities.isNotEmpty()) {
             LazyRow(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -137,14 +123,13 @@ fun MapScreen(
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(filteredFacilities) { facility ->
+                items(sortedFacilities) { facility ->
                     Card(
                         modifier = Modifier
                             .width(280.dp)
                             .clickable {
                                 selectedFacility.value = facility
                                 onFacilitySelected(facility)
-                                // 카드 클릭 시 해당 시설의 위치로 카메라 이동
                                 if (facility.latitude != null && facility.longitude != null) {
                                     coroutineScope.launch {
                                         cameraPositionState.move(
