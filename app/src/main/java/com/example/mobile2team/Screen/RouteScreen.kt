@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -190,6 +191,7 @@ fun RouteScreen(
                         Toast.makeText(context, "현재 위치를 불러오는 중입니다.", Toast.LENGTH_SHORT).show()
                     }
                 },
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF005500)),
                 modifier = Modifier.align(Alignment.End)
             ) {
                 Text("길찾기 실행")
