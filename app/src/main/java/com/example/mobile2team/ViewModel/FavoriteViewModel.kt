@@ -70,47 +70,4 @@ class FavoriteViewModel : ViewModel() {
         }
     }
 
-    /**
-     * 즐겨찾기 삭제 / 删除收藏
-     */
-    fun removeFavorite(facilityId: String) {
-        viewModelScope.launch {
-            repository.removeUserFavorite(currentUserId, facilityId)
-                .onSuccess {
-                    // 삭제 성공 시 목록에서 제거 / 删除成功后从列表中移除
-                    _uiState.value = _uiState.value.copy(
-                        favorites = _uiState.value.favorites.filter { it.id != facilityId.toString() }
-                    )
-                }
-                .onFailure { exception ->
-                    _uiState.value = _uiState.value.copy(
-                        error = "삭제에 실패했습니다: ${exception.message}"
-                    )
-                }
-        }
-    }
-
-    /**
-     * 새로고침 / 刷新
-     */
-    fun refresh() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isRefreshing = true)
-
-            repository.getUserFavorites(currentUserId)
-                .onSuccess { favorites ->
-                    _uiState.value = _uiState.value.copy(
-                        favorites = favorites,
-                        isRefreshing = false,
-                        error = null
-                    )
-                }
-                .onFailure { exception ->
-                    _uiState.value = _uiState.value.copy(
-                        isRefreshing = false,
-                        error = "새로고침 실패: ${exception.message}"
-                    )
-                }
-        }
-    }
 }

@@ -23,10 +23,6 @@ import androidx.navigation.NavHostController
 import com.example.mobile2team.Data.model.FacilityDetail
 import com.example.mobile2team.ViewModel.UserViewModel
 
-/**
- * 즐겨찾기 목록 화면，사용자가 즐겨찾기한 복지시설 목록을 표시하고 관리할 수 있습니다
- * 收藏列表页面，显示和管理用户收藏的福利设施列表
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavoriteScreen(
@@ -88,7 +84,6 @@ fun FavoriteScreen(
 
 /**
  * 즐겨찾기 항목 컴포저블
- * 收藏项目组件
  */
 @Composable
 private fun FavoriteItem(
@@ -139,37 +134,3 @@ private fun FavoriteItem(
     }
 }
 
-/**
- * 빈 즐겨찾기 목록 표시
- * 空收藏列表显示
- */
-@Composable
-private fun EmptyFavoritesContent() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Icon(
-                Icons.Default.Favorite,
-                contentDescription = null,
-                modifier = Modifier.size(64.dp),
-                tint = Color.Gray
-            )
-            Text(
-                text = "즐겨찾기한 시설이 없습니다",
-                fontSize = 16.sp,
-                color = Color.Gray
-            )
-            Text(
-                text = "관심있는 복지시설을 즐겨찾기에 추가해보세요",
-                fontSize = 14.sp,
-                color = Color.Gray
-            )
-        }
-    }
-}

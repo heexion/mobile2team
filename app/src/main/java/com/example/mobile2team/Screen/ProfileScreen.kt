@@ -54,13 +54,4 @@ fun ProfileScreen(
     }
 }
 
-//@Preview
-//@Composable
-//private fun ProfileScreenPreview() {
-//    val navController = rememberNavController()
-//    val userViewModel = UserViewModel().apply {
-//        setUserInfo("홍길동", "hong123", "pw123")
-//    }
-//
-//    ProfileScreen(navController = navController, userViewModel = userViewModel)
-//}
+

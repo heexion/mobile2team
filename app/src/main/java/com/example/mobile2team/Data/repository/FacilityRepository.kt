@@ -27,11 +27,6 @@ class FacilityRepository private constructor() {
         facilityList.addAll(newList)
     }
 
-    /** 전체 시설 리스트 반환 */
-    fun getAllFacilities(): List<FacilityDetail> {
-        return facilityList
-    }
-
     /** ID로 시설 찾기 */
     suspend fun getFacilityDetail(facilityId: String): Result<FacilityDetail> {
         return try {
@@ -44,54 +39,7 @@ class FacilityRepository private constructor() {
         }
     }
 
-    suspend fun toggleFavorite(facilityId: String): Result<Boolean> {
-        return try {
-            val newStatus = if (favoriteIds.contains(facilityId)) {
-                favoriteIds.remove(facilityId)
-                userFavorites["defaultUser"]?.remove(facilityId)
-                false
-            } else {
-                favoriteIds.add(facilityId)
-                userFavorites.getOrPut("defaultUser") { mutableSetOf() }.add(facilityId)
-                true
-            }
-            Result.success(newStatus)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 
-    suspend fun getFavorites(): Result<List<FacilityDetail>> {
-        return try {
-            val favoriteList = favoriteIds.mapNotNull { id ->
-                facilityList.find { it.id == id }?.copy(isFavorite = true)
-            }
-            Result.success(favoriteList)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun addUserFavorite(userId: String, facilityId: String): Result<Boolean> {
-        return try {
-            val userFavoriteSet = userFavorites.getOrPut(userId) { mutableSetOf() }
-            userFavoriteSet.add(facilityId)
-            favoriteIds.add(facilityId)
-            Result.success(true)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun removeUserFavorite(userId: String, facilityId: String): Result<Boolean> {
-        return try {
-            userFavorites[userId]?.remove(facilityId)
-            favoriteIds.remove(facilityId)
-            Result.success(true)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 
     suspend fun getUserFavorites(userId: String): Result<List<FacilityDetail>> {
         return try {

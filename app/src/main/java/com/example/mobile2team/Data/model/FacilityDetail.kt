@@ -2,7 +2,6 @@ package com.example.mobile2team.Data.model
 
 /**
  * 복지시설의 데이터 클래스
- * 福利设施的数据类
  */
 
 data class FacilityDetail(

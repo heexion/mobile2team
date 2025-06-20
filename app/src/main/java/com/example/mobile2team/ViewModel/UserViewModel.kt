@@ -133,7 +133,6 @@ class UserViewModel : ViewModel() {
     // DB에서 읽어온 safeFacilityId를 원래 facilityId로 복원
     private fun decodeFacilityId(safeFacilityId: String): String {
         return safeFacilityId.replace(",", ".")
-        // 필요하다면 다른 특수문자도 역치환
     }
 
     // 즐겨찾기 추가/제거
@@ -167,16 +166,4 @@ class UserViewModel : ViewModel() {
         }
     }
 
-    // 회원가입 시 호출 → 사용자 정보 저장
-    fun setUserInfo(userName: String, userId: String, userPw: String) {
-        name = userName
-        id = userId
-        password = userPw
-    }
-
-    fun checkLogin(inputId: String, inputPw: String): Boolean {
-        val success = inputId == id && inputPw == password
-        isLoggedIn = success
-        return success
-    }
 }
